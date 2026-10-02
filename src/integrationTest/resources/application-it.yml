@@ -1,0 +1,13 @@
+# Integration-test profile. Database coordinates come from the Testcontainers @ServiceConnection;
+# the password below only satisfies the mandatory placeholder in application.yml.
+spring:
+  datasource:
+    password: provided-by-testcontainers
+
+app:
+  tenancy:
+    api-keys: tenant-a:it-key-a,tenant-b:it-key-b
+  rating:
+    # Tests drive the worker explicitly so that every assertion is deterministic.
+    scheduler-enabled: false
+    dispatch-on-commit: false

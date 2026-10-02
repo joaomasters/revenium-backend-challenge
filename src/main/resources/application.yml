@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: usage-rating
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/usage_rating}
+    username: ${DB_USERNAME:usage_rating}
+    # No default on purpose: the application refuses to start without an explicit password.
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  task:
+    execution:
+      shutdown:
+        await-termination: true
+        await-termination-period: 20s
+    scheduling:
+      shutdown:
+        await-termination: true
+        await-termination-period: 20s
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+app:
+  ingestion:
+    # A usage transaction is a few hundred bytes; anything far larger is rejected with 413 and not stored.
+    max-payload-bytes: ${INGESTION_MAX_PAYLOAD_BYTES:65536}
+  tenancy:
+    # Comma-separated "tenantId:apiKey" pairs, e.g. "tenant-a:key-a,tenant-b:key-b".
+    api-keys: ${TENANT_API_KEYS:}
+  rating:
+    scheduler-enabled: ${RATING_SCHEDULER_ENABLED:true}
+    dispatch-on-commit: ${RATING_DISPATCH_ON_COMMIT:true}
+    poll-interval: ${RATING_POLL_INTERVAL:5s}
+    batch-size: ${RATING_BATCH_SIZE:100}
+    max-attempts: ${RATING_MAX_ATTEMPTS:5}
+    retry-backoff: ${RATING_RETRY_BACKOFF:30s}
